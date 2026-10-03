@@ -1,0 +1,6 @@
+# Segredos e dados pessoais nunca vão para o GitHub (os dados ficam no Supabase)
+.env
+data/
+node_modules/
+servidor.log
+*.tmp

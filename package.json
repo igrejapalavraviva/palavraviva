@@ -1,0 +1,11 @@
+{
+  "name": "igreja-palavra-viva",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Site e sistema da Igreja Palavra Viva — Família de Vencedores",
+  "scripts": {
+    "start": "node server.js",
+    "montar": "node scripts/montar.js"
+  },
+  "engines": { "node": ">=18" }
+}

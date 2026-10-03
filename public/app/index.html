@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Sistema · Igreja Palavra Viva</title>
+  <meta name="theme-color" content="#ffffff">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/base.css">
+  <link rel="stylesheet" href="/app/app.css">
+</head>
+<body data-secao="painel">
+  <aside class="lateral" aria-label="Menu do sistema">
+    <a class="marca" href="/app/">
+      <img src="/icon.svg" alt="" width="34" height="34">
+      <span><strong>Palavra Viva</strong><small>Sistema da igreja</small></span>
+    </a>
+    <nav class="nav-lateral">
+      <button data-secao="painel" class="ativa"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="9" rx="2"/><rect x="13.5" y="3" width="7.5" height="5" rx="2"/><rect x="3" y="15" width="7.5" height="6" rx="2"/><rect x="13.5" y="11" width="7.5" height="10" rx="2"/></svg>Painel</button>
+      <button data-secao="membros"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/></svg>Membros</button>
+      <button data-secao="escala"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.8" cy="6" r="1"/><circle cx="3.8" cy="12" r="1"/><circle cx="3.8" cy="18" r="1"/></svg>Escala</button>
+      <button data-secao="calendario"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>Calendário</button>
+    </nav>
+    <div class="lateral-rodape">
+      <a href="/" target="_blank" class="link-lateral"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>Ver o site</a>
+      <button class="link-lateral" data-sair><svg viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H3"/></svg>Sair</button>
+    </div>
+  </aside>
+
+  <header class="topo-celular">
+    <a class="marca" href="/app/"><img src="/icon.svg" alt="" width="30" height="30"><span><strong>Palavra Viva</strong></span></a>
+    <button class="icone" data-sair aria-label="Sair"><svg viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H3"/></svg></button>
+  </header>
+
+  <div class="area">
+    <main id="principal" class="principal"></main>
+
+    <aside class="chat" id="chat" aria-label="Assistente de escalas">
+      <div class="chat-topo">
+        <div>
+          <strong>Assistente</strong>
+          <span id="chat-sub">Peça mudanças na escala</span>
+        </div>
+        <div class="chat-acoes">
+          <button class="icone" id="chat-limpar" title="Limpar conversa" aria-label="Limpar conversa">
+            <svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
+          </button>
+          <button class="icone so-celular" id="chat-fechar" title="Fechar" aria-label="Fechar">
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <form class="chat-form" id="chat-form">
+        <textarea id="chat-input" rows="1" placeholder="Peça uma alteração…"></textarea>
+        <button type="submit" class="enviar" aria-label="Enviar">
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </form>
+    </aside>
+  </div>
+
+  <button class="fab-ia" id="fab-ia" aria-label="Abrir assistente">
+    <svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
+    Assistente
+  </button>
+
+  <nav class="barra-celular" aria-label="Menu">
+    <button data-secao="painel" class="ativa"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="9" rx="2"/><rect x="13.5" y="3" width="7.5" height="5" rx="2"/><rect x="3" y="15" width="7.5" height="6" rx="2"/><rect x="13.5" y="11" width="7.5" height="10" rx="2"/></svg>Painel</button>
+    <button data-secao="membros"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/></svg>Membros</button>
+    <button data-secao="escala"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.8" cy="6" r="1"/><circle cx="3.8" cy="12" r="1"/><circle cx="3.8" cy="18" r="1"/></svg>Escala</button>
+    <button data-secao="calendario"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>Calendário</button>
+  </nav>
+
+  <div class="modal" id="modal" hidden>
+    <div class="modal-fundo" data-fechar></div>
+    <div class="modal-caixa" id="modal-caixa" role="dialog" aria-modal="true"></div>
+  </div>
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/config.js"></script>
+  <script src="/shared.js"></script>
+  <script src="/app/nucleo.js"></script>
+  <script src="/app/app.js"></script>
+</body>
+</html>

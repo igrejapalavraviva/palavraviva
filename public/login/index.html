@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Entrar · Igreja Palavra Viva</title>
+  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/base.css">
+  <style>
+    body { min-height: 100svh; display: grid; grid-template-columns: 1.1fr 1fr; background: var(--branco); }
+    .lado-foto {
+      position: relative; overflow: hidden; background-color: var(--bege-1); background-size: cover; background-position: center;
+      background-image: radial-gradient(900px 500px at 80% 0%, var(--ouro-suave), transparent 60%), radial-gradient(700px 500px at 0% 100%, var(--bege-2), transparent 60%);
+      display: flex; flex-direction: column; justify-content: flex-end; padding: 48px;
+    }
+    .lado-foto.com-imagem::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(20,17,14,.6)); }
+    .lado-foto .frase { position: relative; font-family: var(--serifa); font-size: clamp(30px, 3.4vw, 46px); line-height: 1.1; letter-spacing: -.02em; max-width: 480px; }
+    .lado-foto .frase em { color: var(--ouro); }
+    .lado-foto small { position: relative; display: block; margin-top: 14px; color: var(--suave); letter-spacing: .14em; text-transform: uppercase; font-size: 11.5px; font-weight: 600; }
+    .lado-foto.com-imagem .frase, .lado-foto.com-imagem small { color: #fff; }
+    .lado-foto.com-imagem .frase em { color: #e8cf9f; }
+    .lado-form { display: flex; flex-direction: column; padding: 32px clamp(24px, 6vw, 88px); }
+    .voltar { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--suave); font-size: 14px; align-self: flex-start; }
+    .voltar:hover { color: var(--texto); }
+    .caixa { margin: auto 0; width: 100%; max-width: 380px; align-self: center; padding: 32px 0; }
+    .caixa img { border-radius: 14px; margin-bottom: 26px; }
+    h1 { font-family: var(--serifa); font-weight: 400; font-size: 36px; letter-spacing: -.02em; margin: 0 0 6px; }
+    .caixa > p { color: var(--suave); margin: 0 0 30px; }
+    label { display: grid; gap: 6px; font-size: 13.5px; font-weight: 500; color: var(--texto-2); margin-bottom: 16px; }
+    input { padding: 13px 14px !important; font-size: 15.5px; }
+    .senha { position: relative; }
+    .senha button { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: 0; background: none; width: 38px; height: 38px; border-radius: 10px; color: var(--suave); display: grid; place-items: center; }
+    .senha button:hover { background: var(--bege-1); }
+    .erro { display: flex; gap: 8px; align-items: center; background: var(--erro-suave); color: var(--erro); padding: 11px 14px; border-radius: 12px; font-size: 14px; margin-bottom: 16px; }
+    .btn.primario { width: 100%; padding: 14px; font-size: 15.5px; margin-top: 8px; }
+    .rodape { color: var(--suave); font-size: 12.5px; text-align: center; }
+    @media (max-width: 860px) {
+      body { grid-template-columns: 1fr; }
+      .lado-foto { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="lado-foto" id="lado-foto">
+    <div class="frase">Cuidar de pessoas é a nossa <em>maior missão</em>.</div>
+    <small>Igreja Palavra Viva · Família de Vencedores</small>
+  </aside>
+  <main class="lado-form">
+    <a class="voltar" href="/"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg> Voltar ao site</a>
+    <form class="caixa" id="form" novalidate>
+      <img src="/icon.svg" alt="" width="52" height="52">
+      <h1>Bem-vindo de volta</h1>
+      <p>Entre para acessar o sistema da igreja.</p>
+      <div class="erro" id="erro" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span></span></div>
+      <label>Usuário<input id="usuario" name="usuario" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+      <label>Senha
+        <span class="senha">
+          <input id="senha" name="senha" type="password" autocomplete="current-password" required>
+          <button type="button" id="ver-senha" aria-label="Mostrar senha"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </span>
+      </label>
+      <button class="btn primario" id="entrar" type="submit">Entrar</button>
+    </form>
+    <p class="rodape">© Igreja Palavra Viva</p>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/config.js"></script>
+  <script>
+    const SB = supabase.createClient(IPV_CONFIG.supabaseUrl, IPV_CONFIG.supabaseKey);
+    SB.auth.getSession().then(({ data }) => { if (data.session) location.href = '/app/'; });
+    const form = document.getElementById('form');
+    const erro = document.getElementById('erro');
+    document.getElementById('ver-senha').onclick = () => {
+      const s = document.getElementById('senha');
+      s.type = s.type === 'password' ? 'text' : 'password';
+    };
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      erro.hidden = true;
+      const btn = document.getElementById('entrar');
+      btn.disabled = true;
+      btn.textContent = 'Entrando…';
+      try {
+        // "pastor" vira pastor@palavraviva.live (também aceita o e-mail completo)
+        const usuario = form.usuario.value.trim().toLowerCase();
+        const email = usuario.includes('@') ? usuario : `${usuario}@palavraviva.live`;
+        const { error } = await SB.auth.signInWithPassword({ email, password: form.senha.value });
+        if (error) throw new Error(/invalid/i.test(error.message) ? 'Usuário ou senha incorretos.' : error.message);
+        location.href = '/app/';
+      } catch (err) {
+        erro.querySelector('span').textContent = err.message;
+        erro.hidden = false;
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
+      }
+    });
+    // Foto opcional: site/fotos/login.jpg
+    const img = new Image();
+    img.onload = () => { const l = document.getElementById('lado-foto'); l.style.backgroundImage = `url("${img.src}")`; l.classList.add('com-imagem'); };
+    img.src = '/site/fotos/login.jpg';
+    document.getElementById('usuario').focus();
+  </script>
+</body>
+</html>
