@@ -54,6 +54,7 @@ create table if not exists public.eventos (
   local text default '',
   categoria text default '',
   publico boolean not null default false,
+  destaque boolean not null default false,
   descricao text default '',
   criado_em timestamptz default now(),
   atualizado_em timestamptz default now()

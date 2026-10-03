@@ -36,6 +36,8 @@ const ICONES = {
   maos: '<svg viewBox="0 0 24 24"><path d="M12 21s-7-4.4-9-9.2C1.6 8.4 3.9 5 7.2 5c2 0 3.6 1.2 4.8 3 1.2-1.8 2.8-3 4.8-3 3.3 0 5.6 3.4 4.2 6.8C19 16.6 12 21 12 21z"/></svg>',
   calendario: '<svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>',
   seta: '<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  globo: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
+  copiar: '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
 };
 
 // ---------------- Comunicação ----------------
@@ -85,7 +87,7 @@ function toast(msg, ms = 2600) {
 }
 
 // ---------------- Navegação ----------------
-const SECOES = ['painel', 'membros', 'escala', 'calendario'];
+const SECOES = ['painel', 'membros', 'escala', 'calendario', 'site'];
 
 function irSecao(secao, { aba, semHistorico } = {}) {
   ui.secao = secao;
@@ -115,6 +117,7 @@ function render() {
   if (ui.secao === 'painel') alvo.innerHTML = telaPainel();
   else if (ui.secao === 'membros') alvo.innerHTML = telaMembros();
   else if (ui.secao === 'calendario') alvo.innerHTML = telaCalendario();
+  else if (ui.secao === 'site') alvo.innerHTML = telaSite();
   else {
     const telas = { escala: telaEscala, obreiros: telaObreiros, regras: telaRegras, historico: telaHistorico };
     alvo.innerHTML = subabas() + telas[ui.aba]();
@@ -1039,8 +1042,8 @@ function telaCalendario() {
     </div>`;
 }
 
-function abrirEvento(id, dataPadrao) {
-  const e = id ? clone(S.eventos.find(x => x.id === id)) : { id: null, titulo: '', data_inicio: dataPadrao || S.hoje, data_fim: '', hora_inicio: '19:30', hora_fim: '', local: 'Templo sede', categoria: 'Evento', publico: true, descricao: '' };
+function abrirEvento(id, dataPadrao, copia) {
+  const e = copia ? copia : id ? clone(S.eventos.find(x => x.id === id)) : { id: null, titulo: '', data_inicio: dataPadrao || S.hoje, data_fim: '', hora_inicio: '19:30', hora_fim: '', local: 'Templo sede', categoria: 'Evento', publico: true, descricao: '' };
   ui.rascE = e;
   modal(`
     <div class="modal-cab"><h2>${id ? 'Editar evento' : 'Novo evento'}</h2><button class="icone" data-fechar>${ICONES.x}</button></div>
@@ -1054,13 +1057,15 @@ function abrirEvento(id, dataPadrao) {
           <label class="campo"><span>Até <small>(se durar mais de um dia)</small></span><input type="date" name="data_fim" value="${esc(e.data_fim)}"></label>
           <label class="campo"><span>Começa às</span><input type="time" name="hora_inicio" value="${esc(e.hora_inicio)}"></label>
           <label class="campo"><span>Termina às</span><input type="time" name="hora_fim" value="${esc(e.hora_fim)}"></label>
-          <label class="campo largo"><span>Descrição</span><textarea name="descricao" rows="3" placeholder="O que vai acontecer, para quem é, o que levar…">${esc(e.descricao)}</textarea></label>
+          <label class="campo largo"><span>Descrição</span><textarea name="descricao" rows="3" placeholder="O que vai acontecer, para quem é, programação… Ex.:&#10;06h – Pr. Gilney&#10;07h – Pra. Sheila">${esc(e.descricao)}</textarea></label>
         </div>
       </fieldset>
       <label class="interruptor-linha"><button type="button" class="interruptor ${e.publico ? 'on' : ''}" data-tg-publico aria-label="Mostrar no site"></button><span><strong style="font-weight:500">Mostrar no site da igreja</strong><br><small class="sub">Eventos internos (como reuniões) ficam só aqui no sistema.</small></span></label>
+      <label class="interruptor-linha"><button type="button" class="interruptor ${e.destaque ? 'on' : ''}" data-tg-destaque aria-label="Destacar na página inicial"></button><span><strong style="font-weight:500">Destacar na página inicial</strong><br><small class="sub">Aparece grande, logo no topo do site (ex.: 12 horas de oração).</small></span></label>
     </form>
     <div class="modal-rodape">
       ${id ? `<button class="btn perigo esquerda" data-excluir-evento>${ICONES.lixo} Excluir</button>` : ''}
+      ${id ? `<button class="btn" data-duplicar-evento title="Cria uma cópia no mesmo dia da semana do mês seguinte">${ICONES.copiar} Duplicar</button>` : ''}
       <button class="btn" data-fechar>Cancelar</button>
       <button class="btn primario" data-salvar-evento>Salvar</button>
     </div>`);
@@ -1068,7 +1073,7 @@ function abrirEvento(id, dataPadrao) {
 
 async function salvarEvento() {
   const f = $('#form-evento');
-  const dados = { publico: ui.rascE.publico };
+  const dados = { publico: ui.rascE.publico, destaque: ui.rascE.destaque };
   for (const el of f.elements) if (el.name) dados[el.name] = el.value.trim();
   try {
     if (ui.rascE.id) await api(`/api/eventos/${ui.rascE.id}`, { method: 'PUT', body: dados });
@@ -1078,6 +1083,146 @@ async function salvarEvento() {
     ui.mesCal = dados.data_inicio.slice(0, 7);
     await carregar(ui.mes, { manterChat: true });
   } catch (e) { toast(e.message, 4500); }
+}
+
+// ---------------- Tela: Site (o que aparece na página inicial) ----------------
+function thumbYoutube(id) { return `https://i.ytimg.com/vi/${id}/mqdefault.jpg`; }
+
+function linhasHorarios(lista) {
+  return lista.map((h, i) => `<div class="horario-linha" data-horario="${i}">
+      <input name="dia" value="${esc(h.dia)}" placeholder="Dia (ex.: Domingo)">
+      <input name="culto" value="${esc(h.culto)}" placeholder="Culto">
+      <input name="hora" value="${esc(h.hora)}" placeholder="Horário (ex.: 19h30)">
+      <input name="descricao" value="${esc(h.descricao)}" placeholder="Frase curta">
+      <button type="button" class="icone" data-del-horario="${i}" aria-label="Remover">${ICONES.lixo}</button>
+    </div>`).join('');
+}
+
+function lerHorarios() {
+  return [...document.querySelectorAll('#lista-horarios [data-horario]')].map(l => ({
+    dia: l.querySelector('[name=dia]').value.trim(), culto: l.querySelector('[name=culto]').value.trim(),
+    hora: l.querySelector('[name=hora]').value.trim(), descricao: l.querySelector('[name=descricao]').value.trim(),
+  }));
+}
+
+function telaSite() {
+  const site = S.site || {};
+  const videos = site.videos || [];
+  const eventos = S.eventos.filter(e => e.publico && (e.data_fim || e.data_inicio) >= S.hoje).sort((a, b) => a.data_inicio.localeCompare(b.data_inicio));
+  const c = (nome, rotulo, valor, extra = '', ph = '') => `<label class="campo ${extra}"><span>${rotulo}</span><input name="${nome}" value="${esc(valor ?? '')}" placeholder="${esc(ph)}"></label>`;
+  const t = (nome, rotulo, valor, linhas = 3) => `<label class="campo largo"><span>${rotulo}</span><textarea name="${nome}" rows="${linhas}">${esc(valor ?? '')}</textarea></label>`;
+  return `<div class="cabeca">
+      <div><h1>Site da igreja</h1><p class="sub" style="margin:2px 0 0">O que você publicar aqui aparece na página inicial — palavraviva.live</p></div>
+      <div class="direita"><a class="btn" href="/" target="_blank">${ICONES.globo} Ver o site</a></div>
+    </div>
+
+    <div class="secao" style="margin-top:0">
+      <h2>Palavra do dia</h2>
+      <p class="sub">Postou um vídeo no YouTube? Cole o link aqui. O mais recente aparece em destaque na página inicial; os anteriores ficam logo abaixo.</p>
+      <div class="cartao bloco">
+        <form class="form-video" id="form-video" autocomplete="off">
+          <label class="campo largo"><span>Link do YouTube *</span><input name="url" placeholder="https://youtube.com/shorts/…  ou  https://youtu.be/…"></label>
+          <label class="campo"><span>Título <small>(opcional)</small></span><input name="titulo" placeholder="Ex.: Deus cuida de você"></label>
+          <label class="campo"><span>Data</span><input type="date" name="data" value="${S.hoje}"></label>
+          <button class="btn primario" type="submit">${ICONES.mais} Publicar no site</button>
+        </form>
+        <div class="lista-videos">${videos.length ? videos.map((v, i) => `<div class="video-item">
+            <a href="${esc(v.url)}" target="_blank" rel="noopener" class="video-thumb ${v.formato === 'vertical' ? 'vertical' : ''}"><img src="${thumbYoutube(v.youtube)}" alt="" loading="lazy"></a>
+            <div class="info"><strong>${esc(v.titulo || 'Palavra do dia')}</strong><small>${E.dataBR(v.data)}${i === 0 ? ' · <b class="selo-hoje" style="margin:0">no ar agora</b>' : ''}</small></div>
+            <button class="icone" data-del-video="${v.id}" title="Tirar do site" aria-label="Tirar do site">${ICONES.lixo}</button>
+          </div>`).join('') : '<p class="vazio-mini">Nenhum vídeo publicado ainda. Enquanto não houver vídeo, essa parte fica escondida no site.</p>'}</div>
+      </div>
+    </div>
+
+    <div class="secao">
+      <h2>Eventos na página inicial</h2>
+      <p class="sub">Eventos com “Mostrar no site” aparecem para todos. Marque “Destacar” para o evento aparecer grande, logo no topo da página.</p>
+      <div class="cartao">${eventos.length ? eventos.map(e => `<div class="linha-item" style="cursor:pointer;padding-inline:16px" data-evento="${e.id}">
+          ${dataMini(e.data_inicio, e.data_inicio === S.hoje)}
+          <div class="info"><strong>${esc(e.titulo)}</strong><small>${esc([e.hora_inicio && e.hora_inicio.replace(':', 'h') + (e.hora_fim ? '–' + e.hora_fim.replace(':', 'h') : ''), e.local].filter(Boolean).join(' · '))}</small></div>
+          ${e.destaque ? '<span class="chip f">em destaque</span>' : ''}
+        </div>`).join('') : '<p class="vazio-mini" style="padding:16px">Nenhum evento público à frente.</p>'}</div>
+      <div style="margin-top:10px"><button class="btn" data-novo-evento>${ICONES.mais} Novo evento</button></div>
+    </div>
+
+    <div class="secao">
+      <h2>Informações da página</h2>
+      <p class="sub">Textos, horários dos cultos e contatos que aparecem no site.</p>
+      <form class="cartao bloco form" id="form-site" autocomplete="off">
+        <fieldset><legend>Início</legend><div class="campos">
+          ${t('chamada', 'Frase de boas-vindas (abaixo de “Família de Vencedores”)', site.chamada, 2)}
+          ${t('sobre', 'Quem somos', site.sobre, 4)}
+        </div></fieldset>
+        <fieldset><legend>Horários dos cultos</legend>
+          <div class="lista-mini" id="lista-horarios">${linhasHorarios(site.horarios || [])}</div>
+          <div><button type="button" class="btn pequeno" data-add-horario>${ICONES.mais} Adicionar horário</button></div>
+        </fieldset>
+        <fieldset><legend>Pastores</legend><div class="campos">
+          ${c('pastores_nomes', 'Nomes', (site.pastores || {}).nomes, 'largo')}
+          ${t('pastores_texto', 'Texto', (site.pastores || {}).texto, 2)}
+        </div></fieldset>
+        <fieldset><legend>Versículo</legend><div class="campos">
+          ${t('versiculo_texto', 'Texto', (site.versiculo || {}).texto, 2)}
+          ${c('versiculo_ref', 'Referência', (site.versiculo || {}).ref, '', 'Romanos 8:37')}
+        </div></fieldset>
+        <fieldset><legend>Contato e redes</legend><div class="campos">
+          ${c('endereco', 'Endereço', site.endereco, 'largo')}
+          ${c('mapa_link', 'Link do Google Maps', site.mapa_link, 'largo', 'https://maps.app.goo.gl/…')}
+          ${c('whatsapp', 'WhatsApp da igreja', site.whatsapp, '', '(62) 9 9999-9999')}
+          ${c('email', 'E-mail', site.email)}
+          ${c('instagram', 'Instagram (link)', site.instagram, '', 'https://instagram.com/…')}
+          ${c('youtube', 'Canal do YouTube (link)', site.youtube, '', 'https://youtube.com/@…')}
+        </div></fieldset>
+        <fieldset><legend>Contribuição (PIX)</legend><div class="campos">
+          ${c('pix_chave', 'Chave PIX', (site.pix || {}).chave)}
+          ${c('pix_favorecido', 'Favorecido', (site.pix || {}).favorecido)}
+        </div></fieldset>
+        <div><button class="btn primario" type="submit">Salvar e publicar no site</button></div>
+      </form>
+    </div>`;
+}
+
+async function salvarSite() {
+  const f = $('#form-site');
+  const v = n => f.elements[n].value.trim();
+  const dados = {
+    chamada: v('chamada'), sobre: v('sobre'),
+    horarios: lerHorarios().filter(h => h.dia || h.culto || h.hora),
+    pastores: { nomes: v('pastores_nomes'), texto: v('pastores_texto') },
+    versiculo: { texto: v('versiculo_texto'), ref: v('versiculo_ref') },
+    endereco: v('endereco'), mapa_link: v('mapa_link'), whatsapp: v('whatsapp'), email: v('email'),
+    instagram: v('instagram'), youtube: v('youtube'),
+    pix: { chave: v('pix_chave'), favorecido: v('pix_favorecido') },
+  };
+  try {
+    const r = await api('/api/site', { method: 'PUT', body: dados });
+    toast(r.aplicado ? 'Publicado! A página inicial já está atualizada.' : 'Nada mudou');
+    await carregar(ui.mes, { manterChat: true });
+  } catch (e) { toast(e.message, 4500); }
+}
+
+async function publicarVideo() {
+  const f = $('#form-video');
+  const dados = { url: f.elements.url.value.trim(), titulo: f.elements.titulo.value.trim(), data: f.elements.data.value };
+  if (!dados.url) return toast('Cole o link do vídeo do YouTube.');
+  try {
+    await api('/api/site/videos', { method: 'POST', body: dados });
+    toast('Vídeo publicado na página inicial');
+    await carregar(ui.mes, { manterChat: true });
+  } catch (e) { toast(e.message, 5000); }
+}
+
+/** Mesma "posição" no mês seguinte (ex.: 1º domingo → 1º domingo do mês seguinte). */
+function mesmaPosicaoProximoMes(data) {
+  const ds = E.diaSemana(data);
+  const n = Math.ceil(Number(data.slice(8, 10)) / 7);
+  const prox = E.proximoMes(data.slice(0, 7));
+  const dias = [];
+  for (let d = 1; d <= E.diasNoMes(prox); d++) {
+    const dt = `${prox}-${String(d).padStart(2, '0')}`;
+    if (E.diaSemana(dt) === ds) dias.push(dt);
+  }
+  return dias[Math.min(n, dias.length) - 1];
 }
 
 // ---------------- Chat ----------------
@@ -1264,6 +1409,30 @@ document.addEventListener('click', async e => {
   if (d.dia) { ui.diaSel = ui.diaSel === d.dia ? null : d.dia; return render(); }
   if (d.diaLimpar !== undefined) { ui.diaSel = null; return render(); }
   if (d.tgPublico !== undefined) { ui.rascE.publico = !ui.rascE.publico; return t.classList.toggle('on'); }
+  if (d.tgDestaque !== undefined) {
+    ui.rascE.destaque = !ui.rascE.destaque;
+    if (ui.rascE.destaque && !ui.rascE.publico) { ui.rascE.publico = true; document.querySelector('[data-tg-publico]').classList.add('on'); }
+    return t.classList.toggle('on');
+  }
+  if (d.duplicarEvento !== undefined) {
+    const f = $('#form-evento');
+    const copia = clone(ui.rascE);
+    for (const el of f.elements) if (el.name) copia[el.name] = el.value;
+    copia.id = null;
+    copia.data_inicio = mesmaPosicaoProximoMes(copia.data_inicio);
+    if (copia.data_fim) copia.data_fim = '';
+    abrirEvento(null, null, copia);
+    toast('Cópia criada para ' + E.dataBR(copia.data_inicio) + ' — confira e salve');
+    return;
+  }
+  // Site
+  if (d.addHorario !== undefined) { const l = lerHorarios(); l.push({ dia: '', culto: '', hora: '', descricao: '' }); $('#lista-horarios').innerHTML = linhasHorarios(l); return; }
+  if (d.delHorario) { const l = lerHorarios(); l.splice(Number(d.delHorario), 1); $('#lista-horarios').innerHTML = linhasHorarios(l); return; }
+  if (d.delVideo) {
+    if (!confirm('Tirar este vídeo da página inicial?')) return;
+    try { await api(`/api/site/videos/${d.delVideo}`, { method: 'DELETE' }); toast('Vídeo removido do site'); await carregar(ui.mes, { manterChat: true }); } catch (err) { toast(err.message); }
+    return;
+  }
   if (d.salvarEvento !== undefined) return salvarEvento();
   if (d.excluirEvento !== undefined) {
     if (!confirm(`Excluir o evento "${ui.rascE.titulo}"?`)) return;
@@ -1440,6 +1609,10 @@ document.addEventListener('change', async e => {
 });
 
 $('#chat-form').addEventListener('submit', e => { e.preventDefault(); enviar($('#chat-input').value); });
+document.addEventListener('submit', e => {
+  if (e.target.id === 'form-site') { e.preventDefault(); salvarSite(); }
+  if (e.target.id === 'form-video') { e.preventDefault(); publicarVideo(); }
+});
 $('#chat-input').addEventListener('input', ajustarAltura);
 $('#chat-input').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey && !toque) { e.preventDefault(); enviar(e.target.value); }

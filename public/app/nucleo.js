@@ -29,7 +29,7 @@ const TABELAS = {
   'contatos.json': { tabela: 'contatos', colunas: ['id', 'whatsapp_nome', 'telefone', 'obs'], datas: [], nulos: [] },
   'eventos.json': {
     tabela: 'eventos',
-    colunas: ['id', 'titulo', 'data_inicio', 'data_fim', 'hora_inicio', 'hora_fim', 'local', 'categoria', 'publico', 'descricao', 'criado_em', 'atualizado_em'],
+    colunas: ['id', 'titulo', 'data_inicio', 'data_fim', 'hora_inicio', 'hora_fim', 'local', 'categoria', 'publico', 'destaque', 'descricao', 'criado_em', 'atualizado_em'],
     datas: ['data_fim'], nulos: [],
   },
 };
@@ -187,6 +187,7 @@ module.exports = {
   eventos: () => ler('eventos.json', []),
   salvarEventos: l => salvar('eventos.json', l),
   site: () => ler('site.json', {}),
+  salvarSite: s => salvar('site.json', s),
   escala: mes => ler(`escalas/${validarMes(mes)}.json`, null),
   salvarEscala: e => salvar(`escalas/${validarMes(e.mes)}.json`, e),
   meses: () => Object.keys(cache).filter(k => /^escalas\/\d{4}-\d{2}\.json$/.test(k)).map(k => k.slice(8, 15)).sort(),
@@ -670,7 +671,7 @@ function removerObreiro(id, info = {}) {
 
 // ---------------- Calendário de eventos ----------------
 
-const CAMPOS_EVENTO = ['titulo', 'data_inicio', 'data_fim', 'hora_inicio', 'hora_fim', 'local', 'categoria', 'publico', 'descricao'];
+const CAMPOS_EVENTO = ['titulo', 'data_inicio', 'data_fim', 'hora_inicio', 'hora_fim', 'local', 'categoria', 'publico', 'destaque', 'descricao'];
 
 function normalizarEvento(ev) {
   const data = v => (/^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v : '');
@@ -685,6 +686,7 @@ function normalizarEvento(ev) {
   ev.hora_inicio = hora(ev.hora_inicio);
   ev.hora_fim = hora(ev.hora_fim);
   ev.publico = !!ev.publico;
+  ev.destaque = !!ev.destaque && ev.publico; // só destaca o que aparece no site
   for (const c of ['local', 'categoria', 'descricao']) ev[c] = String(ev[c] || '').trim();
   return ev;
 }
@@ -780,6 +782,62 @@ function atualizarConfig(parcial, info = {}) {
   return { aplicado: true, config };
 }
 
+// ---------------- Página inicial (site) ----------------
+
+const CAMPOS_SITE = { chamada: 'Frase do início', sobre: 'Quem somos', horarios: 'Horários dos cultos', pastores: 'Pastores', versiculo: 'Versículo',
+  endereco: 'Endereço', mapa_link: 'Link do mapa', whatsapp: 'WhatsApp', instagram: 'Instagram', youtube: 'YouTube', email: 'E-mail', pix: 'PIX' };
+
+function atualizarSite(parcial, info = {}) {
+  const site = store.site();
+  const mudou = [];
+  for (const k of Object.keys(CAMPOS_SITE)) {
+    if (parcial[k] === undefined || JSON.stringify(site[k] ?? null) === JSON.stringify(parcial[k])) continue;
+    site[k] = parcial[k];
+    mudou.push(CAMPOS_SITE[k]);
+  }
+  if (!mudou.length) return { aplicado: false, mensagem: 'Nada mudou.' };
+  store.salvarSite(site);
+  registrarRegra({ tipo: 'site', acao: 'alterado', origem: info.origem || 'tela', resumo: `Página inicial atualizada: ${mudou.join(', ')}`, motivo: info.motivo || '' });
+  return { aplicado: true, site };
+}
+
+/** Pega o código do vídeo de qualquer formato de link do YouTube (watch, youtu.be, shorts, live, embed). */
+function idYoutube(url) {
+  const t = String(url || '').trim();
+  const m = t.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|shorts\/|live\/|embed\/|v\/))([\w-]{11})/i);
+  if (m) return m[1];
+  return /^[\w-]{11}$/.test(t) ? t : null;
+}
+
+function publicarVideo(dados, info = {}) {
+  const codigo = idYoutube(dados.url);
+  if (!codigo) throw erro('Não reconheci esse link. Cole o endereço do vídeo do YouTube (ex.: https://youtube.com/shorts/... ou https://youtu.be/...).');
+  const site = store.site();
+  site.videos = site.videos || [];
+  const v = {
+    id: 'v' + uid(), youtube: codigo, url: String(dados.url).trim(),
+    formato: /shorts\//i.test(dados.url) || dados.formato === 'vertical' ? 'vertical' : 'horizontal',
+    titulo: String(dados.titulo || '').trim(), data: /^\d{4}-\d{2}-\d{2}$/.test(dados.data || '') ? dados.data : store.hoje(),
+    criado_em: agora(),
+  };
+  site.videos.unshift(v);
+  site.videos.sort((a, b) => b.data.localeCompare(a.data) || b.criado_em.localeCompare(a.criado_em));
+  site.videos = site.videos.slice(0, 60);
+  store.salvarSite(site);
+  registrarRegra({ tipo: 'site', acao: 'video', origem: info.origem || 'tela', resumo: `Palavra do dia publicada: ${v.titulo || 'vídeo'} (${E.dataBR(v.data)})`, motivo: info.motivo || '' });
+  return v;
+}
+
+function removerVideo(id, info = {}) {
+  const site = store.site();
+  const v = (site.videos || []).find(x => x.id === id);
+  if (!v) throw erro('Vídeo não encontrado.', 404);
+  site.videos = site.videos.filter(x => x !== v);
+  store.salvarSite(site);
+  registrarRegra({ tipo: 'site', acao: 'video-removido', origem: info.origem || 'tela', resumo: `Vídeo removido do site: ${v.titulo || v.youtube} (${E.dataBR(v.data)})`, motivo: info.motivo || '' });
+  return { aplicado: true };
+}
+
 // ---------------- Contatos do WhatsApp ainda sem vínculo ----------------
 
 function resolverContato(contatoId, acao, membroId, info = {}) {
@@ -806,7 +864,7 @@ function resolverContato(contatoId, acao, membroId, info = {}) {
 module.exports = {
   resolverPessoa, alterarAtribuicoes, gerenciarCulto, salvarEscalaGerada, desfazer, resumoValidacao,
   criarMembro, atualizarMembro, removerMembro, criarObreiro, atualizarObreiro, removerObreiro,
-  salvarEvento, removerEvento, regraGeral, atualizarConfig, resolverContato, erro,
+  salvarEvento, removerEvento, atualizarSite, publicarVideo, removerVideo, idYoutube, regraGeral, atualizarConfig, resolverContato, erro,
 };
 
   };
@@ -1323,6 +1381,7 @@ function estado(mes) {
   return {
     hoje, mes, config, obreiros, escala, validacao,
     membros: store.membros(),
+    site: store.site(),
     eventos: store.eventos(),
     contatos: store.contatos(),
     meses: store.meses(),
@@ -1376,6 +1435,11 @@ async function executar(metodo, caminho, corpo = {}) {
     if (m === 'POST' && !p[1]) return ops.salvarEvento(corpo, tela);
     if (m === 'PUT' && p[1]) return ops.salvarEvento(Object.assign({}, corpo, { id: p[1] }), tela);
     if (m === 'DELETE' && p[1]) return ops.removerEvento(p[1], tela);
+  }
+  if (p[0] === 'site') {
+    if (m === 'PUT' && !p[1]) return ops.atualizarSite(corpo, tela);
+    if (m === 'POST' && p[1] === 'videos') return ops.publicarVideo(corpo, tela);
+    if (m === 'DELETE' && p[1] === 'videos' && p[2]) return ops.removerVideo(p[2], tela);
   }
   if (m === 'POST' && p[0] === 'regras') return ops.regraGeral(corpo, tela);
   if (m === 'PUT' && p[0] === 'config') return ops.atualizarConfig(corpo, tela);

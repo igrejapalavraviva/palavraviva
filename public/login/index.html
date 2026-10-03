@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Entrar · Igreja Palavra Viva</title>
   <meta name="theme-color" content="#ffffff">
-  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -27,7 +27,9 @@
     .voltar { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--suave); font-size: 14px; align-self: flex-start; }
     .voltar:hover { color: var(--texto); }
     .caixa { margin: auto 0; width: 100%; max-width: 380px; align-self: center; padding: 32px 0; }
-    .caixa img { border-radius: 14px; margin-bottom: 26px; }
+    .caixa img { margin-bottom: 22px; height: 58px; width: auto; }
+    .marca-dagua { position: absolute; right: -60px; top: 50%; transform: translateY(-50%); width: 62%; max-width: 560px; opacity: .13; pointer-events: none; }
+    .lado-foto.com-imagem .marca-dagua { opacity: .25; filter: brightness(3); }
     h1 { font-family: var(--serifa); font-weight: 400; font-size: 36px; letter-spacing: -.02em; margin: 0 0 6px; }
     .caixa > p { color: var(--suave); margin: 0 0 30px; }
     label { display: grid; gap: 6px; font-size: 13.5px; font-weight: 500; color: var(--texto-2); margin-bottom: 16px; }
@@ -46,13 +48,14 @@
 </head>
 <body>
   <aside class="lado-foto" id="lado-foto">
+    <img class="marca-dagua" src="/logo-cor.png" alt="">
     <div class="frase">Cuidar de pessoas é a nossa <em>maior missão</em>.</div>
     <small>Igreja Palavra Viva · Família de Vencedores</small>
   </aside>
   <main class="lado-form">
     <a class="voltar" href="/"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg> Voltar ao site</a>
     <form class="caixa" id="form" novalidate>
-      <img src="/icon.svg" alt="" width="52" height="52">
+      <img src="/logo-cor.png" alt="Igreja Palavra Viva" width="64" height="58">
       <h1>Bem-vindo de volta</h1>
       <p>Entre para acessar o sistema da igreja.</p>
       <div class="erro" id="erro" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span></span></div>

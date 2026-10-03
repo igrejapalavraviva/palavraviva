@@ -6,7 +6,9 @@
   <title>Igreja Palavra Viva · Família de Vencedores</title>
   <meta name="description" content="Igreja Palavra Viva — Família de Vencedores. Uma igreja cristã evangélica para você pertencer, crescer na fé e viver o propósito de Deus.">
   <meta name="theme-color" content="#ffffff">
-  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="/icone-192.png">
+  <meta property="og:image" content="https://palavraviva.live/icone-512.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -17,10 +19,11 @@
   <header class="topo" id="topo">
     <div class="contido topo-linha">
       <a href="#inicio" class="marca" aria-label="Igreja Palavra Viva — início">
-        <img src="/icon.svg" alt="" width="34" height="34">
+        <img src="/logo-cor.png" alt="" width="44" height="40" class="logo">
         <span><strong>Palavra Viva</strong><small>Família de Vencedores</small></span>
       </a>
       <nav class="menu" id="menu" aria-label="Seções do site">
+        <a href="#palavra" id="nav-palavra" hidden>Palavra do dia</a>
         <a href="#sobre">Sobre</a>
         <a href="#cultos">Cultos</a>
         <a href="#eventos">Eventos</a>
@@ -43,6 +46,7 @@
     <section class="hero sem-foto" id="inicio">
       <div class="foto hero-foto" data-foto="hero" data-rotulo="Foto principal — um culto cheio, louvor, pessoas sorrindo"></div>
       <div class="hero-veu"></div>
+      <img class="hero-marca" src="/logo-cor.png" alt="">
       <div class="contido hero-conteudo">
         <p class="sobretitulo">Igreja Palavra Viva</p>
         <h1>Família de <em>Vencedores</em></h1>
@@ -54,6 +58,38 @@
       </div>
       <div class="contido">
         <div class="faixa-horarios" id="faixa-horarios"></div>
+      </div>
+    </section>
+
+    <!-- Evento em destaque (marcado no sistema) -->
+    <section class="destaque-evento" id="destaque" hidden>
+      <div class="contido">
+        <article class="cartao-destaque">
+          <div class="data-grande"><span id="dst-mes"></span><b id="dst-dia"></b><span id="dst-semana"></span></div>
+          <div class="conteudo">
+            <p class="sobretitulo">Em destaque</p>
+            <h2 id="dst-titulo"></h2>
+            <p class="quando" id="dst-quando"></p>
+            <p class="desc" id="dst-desc"></p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Palavra do dia (vídeos do YouTube publicados no sistema) -->
+    <section class="secao palavra" id="palavra" hidden>
+      <div class="contido palavra-grade">
+        <div class="palavra-texto">
+          <p class="sobretitulo">Palavra do dia</p>
+          <h2 id="palavra-titulo">Uma palavra para <em>hoje</em>.</h2>
+          <p class="texto-grande" id="palavra-data"></p>
+          <a class="btn" id="palavra-link" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="M10 9l5 3-5 3z"/></svg>
+            Assistir no YouTube
+          </a>
+          <div class="palavra-anteriores" id="palavra-anteriores"></div>
+        </div>
+        <div class="palavra-video" id="palavra-video"></div>
       </div>
     </section>
 
@@ -204,7 +240,7 @@
   <footer class="rodape">
     <div class="contido rodape-linha">
       <div class="marca">
-        <img src="/icon.svg" alt="" width="34" height="34">
+        <img src="/logo-cor.png" alt="" width="44" height="40" class="logo">
         <span><strong>Igreja Palavra Viva</strong><small>Família de Vencedores</small></span>
       </div>
       <nav>

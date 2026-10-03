@@ -15,7 +15,7 @@ h3 { font-size: 22px; }
 .topo.rolado { background: rgba(255, 255, 255, .92); backdrop-filter: blur(14px); border-bottom-color: var(--borda); }
 .topo-linha { display: flex; align-items: center; gap: 28px; height: 76px; }
 .marca { display: flex; align-items: center; gap: 11px; text-decoration: none; }
-.marca img { border-radius: 10px; }
+.marca img.logo { height: 40px; width: auto; }
 .marca strong { display: block; font-family: var(--serifa); font-weight: 500; font-size: 19px; letter-spacing: -.01em; line-height: 1.1; }
 .marca small { display: block; font-size: 11.5px; color: var(--suave); letter-spacing: .04em; }
 .menu { display: flex; gap: 26px; margin-left: auto; }
@@ -170,4 +170,48 @@ h3 { font-size: 22px; }
   .culto .hora { font-size: 38px; }
   .cartao-pix { padding: 26px; }
   .rodape-linha { flex-direction: column; align-items: flex-start; }
+}
+
+/* Logo como marca d'água no início */
+.hero-marca { position: absolute; right: max(-40px, calc((100vw - 1200px) / 2 - 80px)); top: 50%; transform: translateY(-46%); width: min(46vw, 560px); opacity: .09; pointer-events: none; }
+.hero.com-foto .hero-marca { opacity: .18; filter: brightness(2.6) saturate(.4); }
+
+/* ---------- Evento em destaque ---------- */
+.destaque-evento { padding: clamp(40px, 6vw, 72px) 0 0; }
+.cartao-destaque { display: flex; gap: clamp(20px, 4vw, 44px); align-items: center; padding: clamp(24px, 4vw, 44px); border-radius: 28px; background: linear-gradient(135deg, var(--ouro-suave), var(--bege-1)); border: 1px solid var(--bege-3); }
+.data-grande { flex: none; width: 128px; text-align: center; background: var(--branco); border-radius: 22px; padding: 18px 0; box-shadow: var(--sombra); }
+.data-grande span { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .14em; color: var(--ouro); font-weight: 600; }
+.data-grande b { display: block; font-family: var(--serifa); font-weight: 400; font-size: 64px; line-height: 1; margin: 6px 0; }
+.cartao-destaque h2 { margin-bottom: 8px; }
+.cartao-destaque .quando { margin: 0 0 12px; color: var(--texto-2); font-weight: 500; }
+.cartao-destaque .desc { margin: 0; color: var(--texto-2); white-space: pre-line; line-height: 1.65; }
+
+/* ---------- Palavra do dia ---------- */
+.palavra-grade { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(28px, 5vw, 72px); align-items: center; }
+.palavra-grade.vertical { grid-template-columns: 1.2fr .8fr; }
+.palavra-texto .btn { margin-top: 4px; }
+.palavra-video { position: relative; border-radius: 24px; overflow: hidden; background: #111; aspect-ratio: 16 / 9; box-shadow: var(--sombra-forte); }
+.palavra-video.vertical { aspect-ratio: 9 / 16; max-height: 78vh; width: auto; justify-self: center; max-width: 380px; width: 100%; }
+.palavra-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.capa-video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; cursor: pointer; background: #111 center / cover no-repeat; }
+.capa-video::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,.35)); }
+.capa-video .play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 76px; height: 76px; border-radius: 50%; background: rgba(255,255,255,.92); display: grid; place-items: center; z-index: 1; transition: transform .2s; }
+.capa-video:hover .play { transform: translate(-50%, -50%) scale(1.06); }
+.capa-video .play svg { width: 30px; height: 30px; fill: var(--texto); stroke: none; margin-left: 4px; }
+.palavra-anteriores { margin-top: 28px; display: grid; gap: 10px; }
+.palavra-anteriores h3 { font-family: var(--sans); font-size: 12px; text-transform: uppercase; letter-spacing: .14em; color: var(--suave); font-weight: 600; margin: 0 0 2px; }
+.anterior { display: flex; gap: 12px; align-items: center; border: 0; background: none; padding: 6px; margin: -6px; border-radius: 14px; text-align: left; }
+.anterior:hover { background: var(--bege-1); }
+.anterior img { width: 96px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 10px; flex: none; }
+.anterior strong { display: block; font-weight: 500; font-size: 14.5px; }
+.anterior small { color: var(--suave); font-size: 12.5px; }
+@media (max-width: 980px) {
+  .palavra-grade, .palavra-grade.vertical { grid-template-columns: 1fr; }
+  .palavra-video { order: -1; }
+  .hero-marca { width: 70vw; right: -18vw; opacity: .07; }
+}
+@media (max-width: 600px) {
+  .cartao-destaque { flex-direction: column; align-items: flex-start; }
+  .data-grande { width: 100%; display: flex; align-items: baseline; justify-content: center; gap: 10px; padding: 12px; }
+  .data-grande b { font-size: 40px; margin: 0; }
 }

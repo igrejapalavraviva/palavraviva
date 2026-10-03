@@ -106,6 +106,61 @@ function eventos(lista) {
   }).join('');
 }
 
+// ---------- Evento em destaque ----------
+function destaque(lista) {
+  const e = lista.find(x => x.destaque);
+  if (!e) return;
+  const [a, m, d] = e.data_inicio.split('-').map(Number);
+  const ds = DIAS_SEMANA[new Date(Date.UTC(a, m - 1, d)).getUTCDay()];
+  $('#dst-mes').textContent = MESES[m - 1];
+  $('#dst-dia').textContent = d;
+  $('#dst-semana').textContent = ds;
+  $('#dst-titulo').textContent = e.titulo;
+  let quando = ds.charAt(0).toUpperCase() + ds.slice(1) + `, ${d}/${String(m).padStart(2, '0')}`;
+  if (e.data_fim) { const [, m2, d2] = e.data_fim.split('-').map(Number); quando = `De ${d}/${String(m).padStart(2, '0')} a ${d2}/${String(m2).padStart(2, '0')}`; }
+  if (e.hora_inicio) quando += ` · ${e.hora_inicio.replace(':', 'h')}${e.hora_fim ? ' às ' + e.hora_fim.replace(':', 'h') : ''}`;
+  if (e.local) quando += ` · ${e.local}`;
+  $('#dst-quando').textContent = quando;
+  $('#dst-desc').textContent = e.descricao || '';
+  $('#destaque').hidden = false;
+}
+
+// ---------- Palavra do dia (YouTube) ----------
+const ICONE_PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg>';
+function dataExtenso(iso) {
+  const [a, m, d] = iso.split('-').map(Number);
+  return new Date(Date.UTC(a, m - 1, d, 12)).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+}
+function mostrarVideo(v, tocar) {
+  const caixa = $('#palavra-video');
+  const vertical = v.formato === 'vertical';
+  caixa.classList.toggle('vertical', vertical);
+  $('#palavra .palavra-grade').classList.toggle('vertical', vertical);
+  if (tocar) {
+    caixa.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${v.youtube}?autoplay=1&rel=0&modestbranding=1&playsinline=1" title="${esc(v.titulo || 'Palavra do dia')}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+  } else {
+    caixa.innerHTML = `<button class="capa-video" style="background-image:url('https://i.ytimg.com/vi/${v.youtube}/${vertical ? 'oar2' : 'maxresdefault'}.jpg'), url('https://i.ytimg.com/vi/${v.youtube}/hqdefault.jpg')" aria-label="Assistir ${esc(v.titulo || 'a palavra do dia')}"><span class="play">${ICONE_PLAY}</span></button>`;
+    caixa.querySelector('button').onclick = () => mostrarVideo(v, true);
+  }
+  $('#palavra-titulo').innerHTML = v.titulo ? esc(v.titulo) : 'Uma palavra para <em>hoje</em>.';
+  const txt = dataExtenso(v.data);
+  $('#palavra-data').textContent = txt.charAt(0).toUpperCase() + txt.slice(1);
+  $('#palavra-link').href = v.url || `https://youtu.be/${v.youtube}`;
+}
+function palavra(videos) {
+  if (!videos.length) return;
+  $('#palavra').hidden = false;
+  $('#nav-palavra').hidden = false;
+  mostrarVideo(videos[0], false);
+  const outros = videos.slice(1, 4);
+  const lista = $('#palavra-anteriores');
+  if (!outros.length) return;
+  lista.innerHTML = '<h3>Anteriores</h3>' + outros.map((v, i) => `<button class="anterior" data-i="${i + 1}">
+      <img src="https://i.ytimg.com/vi/${v.youtube}/mqdefault.jpg" alt="" loading="lazy">
+      <span><strong>${esc(v.titulo || 'Palavra do dia')}</strong><small>${esc(dataExtenso(v.data))}</small></span></button>`).join('');
+  lista.querySelectorAll('button').forEach(b => { b.onclick = () => { mostrarVideo(videos[Number(b.dataset.i)], true); $('#palavra').scrollIntoView({ behavior: 'smooth' }); }; });
+}
+
 function animar() {
   document.querySelectorAll('.secao h2, .duas-colunas > *, .ministerio, .cartao-pix, .versiculo blockquote').forEach(el => el.classList.add('aparecer'));
   const obs = new IntersectionObserver(itens => itens.forEach(i => {
@@ -147,9 +202,13 @@ const cab = { apikey: C.supabaseKey };
 const hoje = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
 Promise.all([
   fetch(`${C.supabaseUrl}/rest/v1/site?select=dados&id=eq.1`, { headers: cab }).then(r => r.json()),
-  fetch(`${C.supabaseUrl}/rest/v1/eventos?select=id,titulo,data_inicio,data_fim,hora_inicio,hora_fim,local,categoria,descricao&publico=eq.true&order=data_inicio`, { headers: cab }).then(r => r.json()),
+  fetch(`${C.supabaseUrl}/rest/v1/eventos?select=id,titulo,data_inicio,data_fim,hora_inicio,hora_fim,local,categoria,descricao,destaque&publico=eq.true&order=data_inicio`, { headers: cab }).then(r => r.json()),
 ]).then(([site, evs]) => {
-  preencher((site[0] && site[0].dados) || {});
-  eventos((Array.isArray(evs) ? evs : []).filter(e => (e.data_fim || e.data_inicio) >= hoje).slice(0, 6));
+  const dados = (site[0] && site[0].dados) || {};
+  const futuros = (Array.isArray(evs) ? evs : []).filter(e => (e.data_fim || e.data_inicio) >= hoje);
+  preencher(dados);
+  destaque(futuros);
+  palavra((dados.videos || []).filter(v => v.youtube));
+  eventos(futuros.slice(0, 6));
   animar();
 }).catch(() => animar());
